@@ -39,11 +39,11 @@ X = graph.get_tensor_by_name('X:0')
 Y = graph.get_tensor_by_name('Y:0')
 Xs = graph.get_tensor_by_name('generator/xs:0')
 
+#데이터 전처리
 def preprocess(img):
-    return(img/255. - 0.5) * 2
+    return(img/255. - 0.5) * 2 # -1 에서 1 사이
 def deproess(img):
-    return (img + 1 ) / 2
-
+    return (img + 1 ) / 2 # 0~1 사이 값, 원래값으로 복원원
 img1 = dlib.load_rgb_image('./imgs/12.jpg')
 img1_faces = align_faces(img1, detector, sp)
 
