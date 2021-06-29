@@ -47,7 +47,7 @@ def deproess(img):
 img1 = dlib.load_rgb_image('./imgs/12.jpg')
 img1_faces = align_faces(img1, detector, sp)
 
-img2 = dlib.load_rgb_image('./imgs/makeup/vFG56.png')
+img2 = dlib.load_rgb_image('./imgs/makeup/XMY-014.png')
 img2_faces = align_faces(img2, detector, sp)
 
 fig, axes = plt.subplots(1,2,figsize=(16,10))
@@ -55,9 +55,30 @@ axes[0].imshow(img1_faces[0])
 axes[1].imshow(img2_faces[0])
 plt.show()
 
+#화장 입히기
+src_img = img1_faces[0]
+ref_img = img2_faces[0]
 
+X_img = preprocess(src_img)
+X_img = np.expand_dims(X_img, axis=0) #reshape, 마지막 한 차원 늘리기
+
+Y_img = preprocess(ref_img)
+Y_img = np.expand_dims(Y_img, axis=0)
+
+output = sess.run(Xs, feed_dict = {X:X_img, Y:Y_img})
+output_img = deproess(output[0])
+
+fig, axes = plt.subplots(1,3,figsize=(20,10))
+axes[0].set_title('Source')
+axes[0].imshow(src_img)
+axes[1].set_title('Reference')
+axes[1].imshow(ref_img)
+axes[2].set_title('Result')
+axes[2].imshow(output_img)
+plt.show()
+
+#얼굴 인식
 """
-얼굴 인식
 
 img = dlib.load_rgb_image('./imgs/12.jpg')
 plt.figure(figsize=(16,10))
