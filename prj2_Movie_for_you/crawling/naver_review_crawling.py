@@ -40,7 +40,7 @@ try:
     for i in range(1, 44): # 2019년 개봉영화 리스트 44
         url = f'https://movie.naver.com/movie/sdb/browsing/bmovie.nhn?open=2019&page={i}'
         time.sleep(0.5)
-        for j in range(1, len(y)+1): # 영화 갯수
+        for j in range(1, 21): # 영화 갯수
             try: # 제목
                 driver.get(url)
                 time.sleep(1)
