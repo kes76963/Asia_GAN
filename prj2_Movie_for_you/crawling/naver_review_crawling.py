@@ -87,15 +87,16 @@ try:
                     print('review btn click error')
             except NoSuchElementException:
                 driver.get(url)
+                time.sleep(1)
                 print('NoSuchElementException')
 
-        print(len(titles))
+        print(i,'번째 페이지 완료')
 
-    df_review = pd.DataFrame({'titles':titles, 'reviews':reviews})
-    df_review['years'] = 2019
-    print(df_review.head(20))
-    df_review.to_csv('./reviews_2019.csv')
-
+        df_review = pd.DataFrame({'titles':titles, 'reviews':reviews})
+        df_review['years'] = 2019
+        print(df_review.head(20))
+        df_review.to_csv('./reviews_2019_{}_page.csv')
+        print(i, '번째 페이지 저장 완료')
 except:
     print('except1')
 finally:
