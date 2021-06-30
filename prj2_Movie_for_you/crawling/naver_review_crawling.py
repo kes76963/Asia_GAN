@@ -6,3 +6,16 @@
 #컬렴 명은 ['titles','reviews']로 통일
 #파일명은 'reviews_0000.csv'로 만들기 / 0000은 연도
 #크롤링 파일은 https://url.kr/rjbvyg 에 업로드
+
+class crawling_naver():
+    def crawling(self, page, url):
+        pass
+
+    def data_save(self, path):
+        pass
+
+
+
+
+
+
