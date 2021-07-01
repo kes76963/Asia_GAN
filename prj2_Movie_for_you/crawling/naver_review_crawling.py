@@ -37,8 +37,8 @@ reviews = []
 
 #2019년 개봉영화 리스트
 try:
-    for i in range(1, 44): # 2019년 개봉영화 리스트 44
-        url = f'https://movie.naver.com/movie/sdb/browsing/bmovie.nhn?open=2019&page={i}'
+    for i in range(1, 60): # 2019년 개봉영화 리스트 44
+        url = f'https://movie.naver.com/movie/sdb/browsing/bmovie.nhn?open=2016&page={i}'
         time.sleep(0.5)
         for j in range(1, 21): # 영화 갯수
             try: # 제목
@@ -57,6 +57,8 @@ try:
                     review_len = driver.find_element_by_xpath(review_len_xpath).text
 
                     review_len = int(review_len) # 리뷰 길이 int 값으로
+                    if review_len > 50 :
+                        review_len = 50
                     try:
                         for k in range(1, ((review_len-1) // 10)+2): # 리뷰 갯수로 최대 페이지 계산
                             review_page_xpath = f'//*[@id="pagerTagAnchor{k}"]/span' # 리뷰 페이지 버튼 xpath
@@ -85,18 +87,21 @@ try:
                         print('review page btn click error')
                 except:
                     print('review btn click error')
+                df_review = pd.DataFrame({'titles': titles, 'reviews': reviews})
+                df_review.to_csv(f'./reviews_2018_{j + (i - 1) * 20}.csv')  # 영화 당 하나씩 저장
             except NoSuchElementException:
                 driver.get(url)
                 time.sleep(1)
                 print('NoSuchElementException')
-
-        print(i,'번째 페이지 완료')
-
-        df_review = pd.DataFrame({'titles':titles, 'reviews':reviews})
-        df_review['years'] = 2019
+        print(len(reviews))
+        print(i, '번째 페이지 완료')
+        df_review = pd.DataFrame({'titles': titles, 'reviews': reviews})
+        # df_review['years'] = 2018
         print(df_review.head(20))
-        df_review.to_csv('./reviews_2019_{}_page.csv')
+        df_review.to_csv(f'./reviews_2018_{i}_page.csv')
         print(i, '번째 페이지 저장 완료')
+    df_review = pd.DataFrame({'titles': titles, 'reviews': reviews})
+    df_review.to_csv(f'./reviews_2018.csv')
 except:
     print('except1')
 finally:
