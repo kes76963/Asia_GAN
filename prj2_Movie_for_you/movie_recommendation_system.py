@@ -2,6 +2,7 @@ import pandas as pd
 from sklearn.metrics.pairwise import linear_kernel
 from scipy.io import mmwrite, mmread
 import pickle
+from gensim.models import Word2Vec
 
 df_review_one_sentence = pd.read_csv('./crawling/one_sentence_review_2016_2021.csv',index_col=0)
 
@@ -15,39 +16,67 @@ df_review_one_sentence = pd.read_csv('./crawling/one_sentence_review_2016_2021.c
 # df.loc['Tom','math'] 컬럼명으로
 # exit()
 
-ls = ['겨울왕국','라이온킹','알라딘']
-print(list(enumerate(ls))) #튜플 리스트로 보여줌 / [(0, '겨울왕국'), (1, '라이온킹'), (2, '알라딘')]
-for idx,i in enumerate(ls) : #0 겨울왕국, 1 라이온킹, 2 알라딘 출력 / 인덱스 값 같이 보여줌
-    print(idx, i)
+#####################################################################################
 
-for idx, i in enumerate(ls):
-    if i == '라이온킹':
-        print(idx)
-
-ls = ['겨울왕국','라이온킹','알라딘']
-리스트 = [아이 + '짱 재밌당' for 아이 in ls]  #['겨울왕국짱 재밌당', '라이온킹짱 재밌당', '알라딘짱 재밌당']
-print(리스트)
-
-exit()
+# # enumerate 정리
+# ls = ['겨울왕국','라이온킹','알라딘']
+# print(list(enumerate(ls))) #튜플 리스트로 보여줌 / [(0, '겨울왕국'), (1, '라이온킹'), (2, '알라딘')]
+# for idx,i in enumerate(ls) : #0 겨울왕국, 1 라이온킹, 2 알라딘 출력 / 인덱스 값 같이 보여줌
+#     print(idx, i)
+#
+# for idx, i in enumerate(ls):
+#     if i == '라이온킹':
+#         print(idx)
+#
+# ls = ['겨울왕국','라이온킹','알라딘']
+# 리스트 = [아이 + '짱 재밌당' for 아이 in ls]  #['겨울왕국짱 재밌당', '라이온킹짱 재밌당', '알라딘짱 재밌당']
+# print(리스트)
+#
+# exit()
 
 
 Tfidf_matrix = mmread('./models/tfidf_movie_review.mtx').tocsr()
 with open('./models/tfidf.pickle','rb') as f :
     Tfidf = pickle.load(f)
 
-def getRecommendation(cosine_sin) :
-    simScore = list(enumerate(cosine_sin[-1])) #어떤게 어떤 영화의 유사도 갖는지 알기 위해서 enumerate /
+def getRecommendation(cosine_sim) :
+    simScore = list(enumerate(cosine_sim[-1])) #어떤게 어떤 영화의 유사도 갖는지 알기 위해서 enumerate /
     simScore = sorted(simScore, key=lambda  x:x[1], reverse=True) #큰 순으로
     simScore = simScore[1:11] #0번은 자기 자신
     movieidx = [i[0]for i in simScore] # i 에는 (0, '겨울왕국') 이렇게 들어있음 / 튜플 중에 0번 인덱스 뽑겠다
     recMovieList = df_review_one_sentence.iloc[movieidx]
     return  recMovieList
 
-movie_idx = df_review_one_sentence[df_review_one_sentence['titles']=='존 윅 3: 파라벨룸 (John Wick: Chapter 3 - Parabellum)'].index[0]
-#movie_idx = 130  # 번호로 했을 때
-print(df_review_one_sentence.iloc[movie_idx,0])
 
-cosine_sin = linear_kernel(Tfidf_matrix[movie_idx], Tfidf_matrix) #특정값(idx)와 모든 영화 코사인 유사도 구해서
-recommendation = getRecommendation(cosine_sin)
-print(recommendation)
-#print(recommendation.iloc[0]) 제목만 보고 싶을 때
+# #제목/ 숫자로 검색
+# movie_idx = df_review_one_sentence[df_review_one_sentence['titles']=='존 윅 3: 파라벨룸 (John Wick: Chapter 3 - Parabellum)'].index[0]
+# #movie_idx = 130  # 번호로 했을 때
+# print(df_review_one_sentence.iloc[movie_idx,0])
+#
+# cosine_sim = linear_kernel(Tfidf_matrix[movie_idx], Tfidf_matrix) #특정값(idx)와 모든 영화 코사인 유사도 구해서
+# recommendation = getRecommendation(cosine_sim)
+# print(recommendation)
+# #print(recommendation.iloc[0]) 제목만 보고 싶을 때
+
+
+
+#키워드 기반의 추천
+embedding_model = Word2Vec.load('./models/word2VecModel_2016_2021.model')
+key_word = '토르'
+sentence = [key_word] * 10
+sim_word = embedding_model.wv.most_similar(key_word, topn=10)
+labels = []
+for label, _ in sim_word:
+    labels.append(label)
+print(label)
+for i, word in enumerate(labels) :
+    sentence +=[word] *(9-i)
+sentence = ' '.join(sentence)
+print(sentence)
+
+sentence_vec = Tfidf.transform([sentence])
+cosine_sim = linear_kernel(sentence_vec, Tfidf_matrix)
+recommendataion = getRecommendation(cosine_sim)
+print(recommendataion['titles'])
+
+#추천을 해줬을 때 평가 => 매출가지고 반영
