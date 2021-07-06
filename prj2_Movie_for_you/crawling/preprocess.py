@@ -2,25 +2,26 @@ import pandas as pd
 from konlpy.tag import Okt
 import re
 
-df = pd.read_csv('./reviews_2019.csv', index_col=0)
+df = pd.read_csv('./reviews_2016_.csv', index_col=0)
+df.dropna(inplace=True)
 print(df.head())
 
 okt = Okt()
 
 stopwords = pd.read_csv('./stopwords.csv', index_col= 0)
 
-movie_stopwords = ['영화','배우','감독']
+movie_stopwords = ['영화', '배우', '감독', '관객', '작품', '주인공', '개봉', '촬영']
 stopwords_list = list(stopwords.stopword) + movie_stopwords
 
 count = 0
 cleaned_sentences = []
-for sentence in df.reviews :
+for sentence in df.reviews:
   count += 1
   if count % 10 == 0 :
     print('.', end='')
   if count % 100 == 0 :
     print('') #줄바꿈
-  sentence = re.sub('[^가-힣 ]','',sentence)
+  #sentence = re.sub('[^가-힣 ]','',sentence)
   token = okt.pos(sentence, stem = True) #stem true로 하면 원형으로 바꿔줌
   df_token = pd.DataFrame(token, columns=['word','class'])
   df_cleaned_token = df_token[(df_token['class'] =='Noun') |
@@ -40,4 +41,4 @@ df.info()
 
 df = df[['titles','cleaned_sentences']]
 print(df.info())
-df.to_csv('./cleaned_review_2019_part.csv')
+df.to_csv('./cleaned_review_2016_part_.csv')

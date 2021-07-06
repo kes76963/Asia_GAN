@@ -30,7 +30,7 @@ stopwords = ['작품','관객','주인공','개봉','감독']
 # wordcloud_img = WordCloud(background_color='white', max_words=2000,
 #                           font_path=fontpath).generate_from_frequencies(worddict)
 #stopword 처리
-wordcloud_img = WordCloud(background_color='white', max_words=2000,
+wordcloud_img = WordCloud(background_color='white', max_words=2000, collocations= False, #중복 방지
                           font_path=fontpath, stopwords=stopwords).generate(df.reviews[movie_index])
 plt.figure(figsize=(8,8))
 plt.imshow(wordcloud_img, interpolation='bilinear')
