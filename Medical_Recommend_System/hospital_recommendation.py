@@ -7,8 +7,10 @@ from sklearn.metrics.pairwise import linear_kernel
 from gensim.models import Word2Vec
 from scipy.io import mmwrite, mmread
 import pickle
-form_window = uic.loadUiType('recommender_2.ui')[0]
+import webbrowser
 
+#form_window = uic.loadUiType('recommender_2.ui')[0]
+form_window = uic.loadUiType('plz_Yes_button.ui')[0]
 class Exam(QWidget, form_window):
     def __init__(self):
         super().__init__()
@@ -25,6 +27,8 @@ class Exam(QWidget, form_window):
         print(category)
         category = sorted(category)
         self.cmb_title_2.addItem('과를 선택하세요')
+        self.cmb_title.addItem('지역을 선택하세요')
+
         for c in category :
             self.cmb_title_2.addItem(c) #카테고리 목록
 
@@ -37,12 +41,12 @@ class Exam(QWidget, form_window):
         totals = total.split(', ')
         total_set = set(totals)
         total = list(total_set)  #진료 과목
+        total = sorted(total)
 
         titles = list(self.df_review.names) # 병원 이름
         titles = sorted(titles)
 
-        key_title = titles + total
-        key_title = sorted(key_title) #병원 + 진료 과목
+        key_title = titles + total      #병원 + 진료 과목
 
         #자동완성
         model = QStringListModel()
@@ -51,10 +55,36 @@ class Exam(QWidget, form_window):
         completer.setModel(model)
         self.le_title.setCompleter(completer)
         self.le_title.returnPressed.connect(self.btn_recommend_slot)
-
         self.btn_recommend.clicked.connect(self.btn_recommend_slot)
+
         self.cmb_title_2.currentIndexChanged.connect(self.cmb_title_slot_2)
         self.cmb_title.currentIndexChanged.connect(self.cmb_title_slot)
+        self.listWidget.itemClicked.connect(self.hospital_info)
+        self.btn_html.clicked.connect(self.open_web)
+
+
+    def open_web(self):
+        print('클릭')
+        title = self.listWidget.currentItem().text()
+        html = self.df_review[self.df_review.names == title].iloc[0, 5]
+        webbrowser.open(html)
+
+
+    def hospital_info(self):
+        print('클릭')
+        title = self.listWidget.currentItem().text()
+
+
+        a = self.df_review[self.df_review.names == title].iloc[0, 3].split(',')[:10]
+        a = ','.join(a)
+        b = self.df_review[self.df_review.names == title].iloc[0, 4]
+        c = self.df_review[self.df_review.names == title].iloc[0, 6]
+        d = self.df_review[self.df_review.names == title].iloc[0, 5]
+        recommend = '[주요 진료 과목]\n{0}\n\n[주소]\n{1}\n\n[전화번호]\n{2}'.format(a, b, c)
+        self.infotext.setText(recommend)
+        recommend = '홈페이지 바로가기 클릭!!'
+        self.btn_html.setText(recommend)
+
 
 
     #지역 한정 병원
@@ -63,9 +93,13 @@ class Exam(QWidget, form_window):
         address = self.cmb_title.currentText()
         print(address)
 
-        region = self.df_review[(self.df_review.category == title) &(self.df_review.region == address)].iloc[:9, 1]
-        recommend = '\n'.join(list(region))
-        self.lbl_result.setText(recommend)
+        region = self.df_review[(self.df_review.category == title) &(self.df_review.region == address)].iloc[:10, 1]
+        #recommend = '\n'.join(list(region))
+        recommend = list(region)
+        print(recommend)
+        self.listWidget.clear()
+        self.listWidget.insertItems(0, recommend)
+        #self.lbl_result.setText(recommend)
 
 
     #카테고리 탑10 병원
@@ -83,20 +117,17 @@ class Exam(QWidget, form_window):
         address = sorted(address)
         address.pop(0)
 
-        self.cmb_title.addItem('지역을 선택하세요')
         for add in address:
             self.cmb_title.addItem(add) #지역 목록
 
-
-        print(title)
-        #print(self.df_review.category.unique())
-        top = self.df_review[self.df_review.category == title].iloc[:9,1]
-        recommend = '\n'.join(list(top))
+        top = self.df_review[self.df_review.category == title].iloc[:10,1]
+        #recommend = '\n'.join(list(top)) # 이거는 lbl_result에
+        recommend = list(top)
         print(recommend)
-        #c = c[c.category == title].loc[:9, 'names']
-        #print(a)
-        self.lbl_result.setText(recommend)
-        #self.cmb_title.currentIndexChanged.connect(self.cmb_title_slot, title)
+        #self.lbl_result.setText(recommend)
+        self.listWidget.clear()
+        self.listWidget.insertItems(0, recommend)
+
 
     def getRecommendation(self, cosine_sim):
         simScores = list(enumerate(cosine_sim[-1]))
@@ -112,6 +143,7 @@ class Exam(QWidget, form_window):
 
     def btn_recommend_slot(self):
         title = self.le_title.text()
+
         try:
             if title in list(self.df_review['names']):
                 movie_idx = self.df_review[
@@ -119,8 +151,9 @@ class Exam(QWidget, form_window):
                 cosine_sim = linear_kernel(
                     self.Tfidf_matrix[movie_idx],
                     self.Tfidf_matrix)
-                recommend = '\n'.join(
-                    list(self.getRecommendation(cosine_sim))[1:])
+                # recommend = '\n'.join(
+                #     list(self.getRecommendation(cosine_sim))[1:])
+                recommend = list(self.getRecommendation(cosine_sim))[:-1]
 
             #elif title in total :
 
@@ -142,11 +175,17 @@ class Exam(QWidget, form_window):
                 sentence_vec = self.Tfidf.transform([sentence])
                 cosine_sim = linear_kernel(sentence_vec,
                                            self.Tfidf_matrix)
-                recommend = '\n'.join(
-                    list(self.getRecommendation(cosine_sim))[:-1])
+                # recommend = '\n'.join(
+                #     list(self.getRecommendation(cosine_sim))[:-1])
+
+                recommend = list(self.getRecommendation(cosine_sim))[:-1]
         except:
-            recommend ='검색 결과를 다시 확인해주세요'
-        self.lbl_result.setText(recommend)
+            if title :
+                recommend ='검색 결과를 다시 확인해주세요'
+            else:
+                pass
+        self.listWidget.clear()
+        self.listWidget.insertItems(0, recommend)
 
         #self.LW.addItem(recommend[1])
         # self.addItemText = recommend
