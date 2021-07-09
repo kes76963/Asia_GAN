@@ -10,7 +10,7 @@ import pickle
 import webbrowser
 
 #form_window = uic.loadUiType('recommender_2.ui')[0]
-form_window = uic.loadUiType('plz_Yes_button_edit_4.ui')[0]
+form_window = uic.loadUiType('plz_Yes_button_edit_3.ui')[0]
 class Exam(QWidget, form_window):
     def __init__(self):
         super().__init__()
@@ -28,7 +28,7 @@ class Exam(QWidget, form_window):
         #print(category)
         category = sorted(category)
         self.cmb_title_2.addItem('과를 선택하세요')
-        self.cmb_title.addItem('지역을 선택하세요')
+        #self.cmb_title.addItem('지역을 선택하세요')
 
         for c in category :
             self.cmb_title_2.addItem(c) #카테고리 목록
@@ -138,6 +138,7 @@ class Exam(QWidget, form_window):
 
     #지역 한정 병원
     def cmb_title_slot(self):
+        self.le_title.clear()
         title = self.cmb_title_2.currentText()
         address = self.cmb_title.currentText()
         print(address)
@@ -165,32 +166,63 @@ class Exam(QWidget, form_window):
         self.listWidget.clear()
         self.listWidget.insertItems(0, recommend)
 
+    # #과, 지역 기반 추천시스템
+    # def getRecommendation(self, cosine_sim):
+    #     print('추천 클릭')
+    #     address = self.cmb_title.currentText()
+    #     #print(type(address))
+    #     print(address)
+    #     simScores = list(enumerate(cosine_sim[-1]))
+    #     simScores = sorted(simScores, key=lambda x: x[1],
+    #                        reverse=True)
+    #     #print(simScores)
+    #     simlist = []
+    #     for i in simScores :
+    #         add = self.df_review.iloc[i[0],7]
+    #         #print(add,end='')
+    #         if add == address :
+    #             #print(add)
+    #             simlist.append(i)
+    #
+    #     #simScores = simScores[0:10]
+    #     #movieidx = [i[0] for i in simScores]
+    #     movieidx = [i[0] for i in simlist[0:10]]
+    #     print(movieidx)
+    #     RecMovielist = self.df_review.iloc[movieidx]
+    #     #print(RecMovielist)
+    #     return RecMovielist.names
 
-    def getRecommendation(self, cosine_sim):
-        print('추천 클릭')
+    #키워드 기반 추천 시스템
+    def getRecommendation2(self, cosine_sim):
+        title = self.cmb_title_2.currentText()
         address = self.cmb_title.currentText()
-        print(type(address))
-        print(address)
-        simScores = list(enumerate(cosine_sim[-1]))
-        simScores = sorted(simScores, key=lambda x: x[1],
-                           reverse=True)
-        #print(simScores)
-        simlist = []
-        for i in simScores :
-            add = self.df_review.iloc[i[0],7]
-            #print(add,end='')
-            if add == address :
-                #print(add)
-                simlist.append(i)
 
-        #simScores = simScores[0:10]
-        #movieidx = [i[0] for i in simScores]
-        movieidx = [i[0] for i in simlist[0:10]]
-        print(movieidx)
+        simScores = list(enumerate(cosine_sim[-1]))
+        simScores = sorted(simScores, key=lambda x: x[1], reverse=True)
+
+        if title == '과를 선택하세요' and address =='지역을 선택하세요':
+            pass
+        else :
+            simlist = []
+            for i in simScores :
+                add = self.df_review.iloc[i[0],7]
+                #print(add,end='')
+                if add == address :
+                    #print(add)
+                    simlist.append(i)
+
+            #simScores = simScores[0:10]
+            #movieidx = [i[0] for i in simScores]
+            movieidx = [i[0] for i in simlist[0:10]]
+            print(movieidx)
+            RecMovielist = self.df_review.iloc[movieidx]
+            return RecMovielist.names
+
+        simScores = simScores[0:11]
+        movieidx = [i[0] for i in simScores]
         RecMovielist = self.df_review.iloc[movieidx]
         #print(RecMovielist)
         return RecMovielist.names
-
 
 
     def btn_recommend_slot(self):
@@ -205,7 +237,7 @@ class Exam(QWidget, form_window):
                     self.Tfidf_matrix)
                 # recommend = '\n'.join(
                 #     list(self.getRecommendation(cosine_sim))[1:])
-                recommend = list(self.getRecommendation(cosine_sim))[:-1]
+                recommend = list(self.getRecommendation2(cosine_sim))[:-1]
 
             #elif title in total :
 
@@ -230,10 +262,14 @@ class Exam(QWidget, form_window):
                 # recommend = '\n'.join(
                 #     list(self.getRecommendation(cosine_sim))[:-1])
 
-                recommend = list(self.getRecommendation(cosine_sim))[:-1]
+                recommend = list(self.getRecommendation2(cosine_sim))[:-1]
         except:
             if title :
-                recommend =['검색 결과를 다시 확인해주세요']
+                recommend =['검색어를 다시 확인해주세요']
+                self.infotext.clear()
+
+                default_text = '[ 주요 진료 과목 ]\n\n[ 주소 ]\n\n[ 전화번호 ]'
+                self.infotext.setText(default_text)
 
             else:
                 pass
