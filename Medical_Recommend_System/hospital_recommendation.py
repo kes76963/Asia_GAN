@@ -10,7 +10,7 @@ import pickle
 import webbrowser
 
 #form_window = uic.loadUiType('recommender_2.ui')[0]
-form_window = uic.loadUiType('plz_Yes_button.ui')[0]
+form_window = uic.loadUiType('plz_Yes_button_edit_4.ui')[0]
 class Exam(QWidget, form_window):
     def __init__(self):
         super().__init__()
@@ -38,6 +38,21 @@ class Exam(QWidget, form_window):
         for c in self.df_review.clinics:
             total += c
 
+        #지역을 추가하기
+        add_list = []
+        for i in self.df_review.addresses:
+            a = i.split(' ')[0]
+            add_list.append(a)
+
+        add_set = set(add_list)
+        address = list(add_set)
+        address = sorted(address)
+        address.pop(0)
+
+        self.cmb_title.addItem('지역을 선택하세요')
+        for add in address:
+            self.cmb_title.addItem(add) #지역 목록
+
         #과를 추가하기
         totals = total.split(', ')
         total_set = set(totals)
@@ -62,7 +77,38 @@ class Exam(QWidget, form_window):
         self.cmb_title.currentIndexChanged.connect(self.cmb_title_slot)
         self.listWidget.itemClicked.connect(self.hospital_info)
         self.btn_html.clicked.connect(self.open_web)
+        self.btn_recommend_5.clicked.connect(self.btn_clicked)
 
+    #리셋 기능
+    def btn_clicked(self):
+        self.cmb_title_2.clear()
+        self.cmb_title.clear()
+        self.le_title.clear()
+        self.infotext.clear()
+
+        default_text = '[ 주요 진료 과목 ]\n\n[ 주소 ]\n\n[ 전화번호 ]'
+        self.infotext.setText(default_text)
+
+        category = list(self.df_review.category.unique())
+        category = sorted(category)
+        self.cmb_title_2.addItem('과를 선택하세요')
+        self.cmb_title.addItem('지역을 선택하세요')
+
+        add_list = []
+        for i in self.df_review.addresses:
+            a = i.split(' ')[0]
+            add_list.append(a)
+
+        add_set = set(add_list)
+        address = list(add_set)
+        address = sorted(address)
+        address.pop(0)
+
+        for add in address:
+            self.cmb_title.addItem(add)  # 지역 목록
+
+        for c in category:
+            self.cmb_title_2.addItem(c)  # 카테고리 목록
 
     def open_web(self):
         print('클릭')
@@ -81,7 +127,7 @@ class Exam(QWidget, form_window):
             b = self.df_review[self.df_review.names == title].iloc[0, 4]
             c = self.df_review[self.df_review.names == title].iloc[0, 6]
             d = self.df_review[self.df_review.names == title].iloc[0, 5]
-            recommend = '[주요 진료 과목]\n{0}\n\n[주소]\n{1}\n\n[전화번호]\n{2}'.format(a, b, c)
+            recommend = '[ 주요 진료 과목 ]\n{0}\n\n[ 주소 ]\n{1}\n\n[ 전화번호 ]\n{2}'.format(a, b, c)
             self.infotext.setText(recommend)
             recommend = '홈페이지 바로가기 클릭!'
             self.btn_html.setText(recommend)
@@ -109,19 +155,7 @@ class Exam(QWidget, form_window):
     def cmb_title_slot_2(self):
         title = self.cmb_title_2.currentText()
 
-        #지역을 추가하기
-        add_list = []
-        for i in self.df_review.addresses:
-            a = i.split(' ')[0]
-            add_list.append(a)
 
-        add_set = set(add_list)
-        address = list(add_set)
-        address = sorted(address)
-        address.pop(0)
-
-        for add in address:
-            self.cmb_title.addItem(add) #지역 목록
 
         top = self.df_review[self.df_review.category == title].iloc[:10,1]
         #recommend = '\n'.join(list(top)) # 이거는 lbl_result에
@@ -140,7 +174,7 @@ class Exam(QWidget, form_window):
         simScores = list(enumerate(cosine_sim[-1]))
         simScores = sorted(simScores, key=lambda x: x[1],
                            reverse=True)
-        print(simScores)
+        #print(simScores)
         simlist = []
         for i in simScores :
             add = self.df_review.iloc[i[0],7]
