@@ -67,7 +67,7 @@ class Exam(QWidget, form_window):
         print('클릭')
         title = self.listWidget.currentItem().text()
         html = self.df_review[self.df_review.names == title].iloc[0, 5]
-        webbrowser.open(html)
+        webbrowser.open(html) #홈페이지 연동
 
 
     def hospital_info(self):
