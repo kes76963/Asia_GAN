@@ -7,7 +7,9 @@ df_review.info()
 a = 1
 if a == 1 :
     pass
-print(1)
+b = 'aa'
+a = [f'이 지역에는{b}가 없습니다']
+print(a)
 
 
 
