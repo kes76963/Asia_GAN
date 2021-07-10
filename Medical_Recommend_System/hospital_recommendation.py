@@ -196,7 +196,7 @@ class Exam(QWidget, form_window):
     def getRecommendation2(self, cosine_sim):
         title = self.cmb_title_2.currentText()
         address = self.cmb_title.currentText()
-
+        print(title, address)
         simScores = list(enumerate(cosine_sim[-1]))
         simScores = sorted(simScores, key=lambda x: x[1], reverse=True)
 
@@ -206,17 +206,23 @@ class Exam(QWidget, form_window):
             simlist = []
             for i in simScores :
                 add = self.df_review.iloc[i[0],7]
+                tit = self.df_review.iloc[i[0],0]
+                #print(tit)
                 #print(add,end='')
-                if add == address :
+                if add == address and tit == title :
                     #print(add)
                     simlist.append(i)
 
             #simScores = simScores[0:10]
             #movieidx = [i[0] for i in simScores]
             movieidx = [i[0] for i in simlist[0:10]]
-            print(movieidx)
-            RecMovielist = self.df_review.iloc[movieidx]
-            return RecMovielist.names
+            if len(movieidx) == 0:
+                RecMovielist = [f'{address} 지역에는 관련된 키워드가 없습니다.']
+                return RecMovielist.names
+            else :
+                RecMovielist = self.df_review.iloc[movieidx]
+                print(RecMovielist, '출력')
+                return RecMovielist.names
 
         simScores = simScores[0:11]
         movieidx = [i[0] for i in simScores]
@@ -243,7 +249,7 @@ class Exam(QWidget, form_window):
 
 
             else:
-                print(title)
+                print(title, '예외 키워드')
                 sentence = [title] * 10
 
                 sim_word = self.embedding_model.wv.most_similar(title, topn=10)
